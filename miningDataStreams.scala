@@ -9,6 +9,13 @@ object MiningDataStreams {
 		// Create streaming context
 	    val conf = new SparkConf().setAppName("Lab 3").setMaster("local[*]")
 	    val ssc = new StreamingContext(conf, Seconds(1))
-	    
+
+	    //read file from socket
+	    val lines = ssc.socketTextStream("localhost", 9999)
+
+		lines.map(x => (x.split(" ")(0), x.split(" ")(1))).print()
+
+		ssc.start()
+		ssc.awaitTermination()
 	}
 }
