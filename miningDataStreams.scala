@@ -30,8 +30,13 @@ object MiningDataStreams {
 		// var t: Int = 0;
 
 	    //read file from socket
-	    val lines = ssc.socketTextStream("localhost", 9999)
-		
+	    try {
+	    	val lines = ssc.socketTextStream("localhost", 12345)
+		}
+		catch{
+			case e: Exception => e.printStackTrace
+		}
+
 		lines.map(x => {
 			t = t + 1
 			val u: Int = x.split(" ")(0).toInt
@@ -58,8 +63,8 @@ object MiningDataStreams {
 				// 			updateCounters ('+', v, u)
 				// 		}
 				// 	}
-					adjacencyList += (u -> (a.get(u).getOrElse(Set.empty) + v))
-					adjacencyList += (v -> (a.get(v).getOrElse(Set.empty) + u))
+					adjacencyList += (u -> (adjacencyList.get(u).getOrElse(Set.empty) + v))
+					adjacencyList += (v -> (adjacencyList.get(v).getOrElse(Set.empty) + u))
 					reservoir :+= (u, v)
 					updateCounters('+', u, v)
 				}
@@ -70,9 +75,10 @@ object MiningDataStreams {
 
 		ssc.start()
 		ssc.awaitTermination()
+		println("triangleCount: " + triangleCount)
 	}
 
-	def sampleEdge(u: Int, v: Int,t: Int): Boolean = {
+	def sampleEdge(u: Int, v: Int, t: Int): Boolean = {
 		val m: Int = 1000
 
 		if (t <= m) {
@@ -87,14 +93,14 @@ object MiningDataStreams {
 			val u: Int = edge._1
 			val v: Int = edge._2
 			val newUSet: Set[Int] = adjacencyList.get(u).get - u
-			newUSet match {
-				case Set() => adjacencyList -= u
+			newUSet.size match {
+				case 0 => adjacencyList -= u
 				case _ => adjacencyList += (u -> newUSet)
 			}
 
 			val newVSet: Set[Int] = adjacencyList.get(v).get - v
-			newVSet match {
-				case Set() => adjacencyList -= v
+			newVSet.size match {
+				case 0 => adjacencyList -= v
 				case _ => adjacencyList += (v -> newVSet)
 			}
 
@@ -105,7 +111,7 @@ object MiningDataStreams {
 	}
 
 	def updateCounters(operator: Char, u: Int, v: Int) {
-		val commonNeighbours: Set[Int] = adjacencyList.get(u).get.intersection(adjacencyList.get(v).get)
+		val commonNeighbours: Set[Int] = adjacencyList.get(u).get.intersect(adjacencyList.get(v).get)
 		operator match {
 			case '+' => {
 				triangleCount += commonNeighbours.size
