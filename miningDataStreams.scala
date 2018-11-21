@@ -31,7 +31,7 @@ object MiningDataStreams {
 			rdd.collect().map( x => 
 				{
 					t = t + 1
-					print(t)
+					println(t)
 				 	val u: Int = x.split(" ")(0).toInt
 					val v: Int = x.split(" ")(1).toInt
 					sampleEdge(u, v, t) match{
@@ -71,13 +71,13 @@ object MiningDataStreams {
 			val edge: (Int, Int) = reservoir.remove(edgeIdx)
 			val u: Int = edge._1
 			val v: Int = edge._2
-			val newUSet: Set[Int] = adjacencyList.get(u).get - u
+			val newUSet: Set[Int] = adjacencyList.get(u).get - v
 			newUSet.size match {
 				case 0 => adjacencyList -= u
 				case _ => adjacencyList += (u -> newUSet)
 			}
 
-			val newVSet: Set[Int] = adjacencyList.get(v).get - v
+			val newVSet: Set[Int] = adjacencyList.get(v).get - u
 			newVSet.size match {
 				case 0 => adjacencyList -= v
 				case _ => adjacencyList += (v -> newVSet)
@@ -90,7 +90,9 @@ object MiningDataStreams {
 	}
 
 	def updateCounters(operator: Char, u: Int, v: Int) {
-		val commonNeighbours: Set[Int] = adjacencyList.get(u).get.intersect(adjacencyList.get(v).get)
+		val n_u = adjacencyList.get(u).getOrElse(Set.empty)
+		val n_v = adjacencyList.get(v).getOrElse(Set.empty)
+		val commonNeighbours: Set[Int] = n_u.intersect(n_v)
 		operator match {
 			case '+' => {
 				//print(" + " + " commonNeighbours: " + commonNeighbours)
@@ -113,7 +115,9 @@ object MiningDataStreams {
 		}
 		println(" c: " + triangleCount)
 		println(" adjList: " + adjacencyList.size)
+		println("ad " + adjacencyList)
 		println(" reservoir: " + reservoir.size)
+		println(reservoir)
 	}
 
 }

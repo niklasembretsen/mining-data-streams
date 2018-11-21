@@ -13,7 +13,7 @@ while True:
     print('\nConnected by', addr)
     try:
         print('\nReading file...\n')
-        with open('dataset/out.com-amazon') as f:
+        with open('dataset/test.txt') as f:
             for line in f:
                 out = line.encode('utf-8')
                 print('Sending line',line)
