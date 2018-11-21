@@ -23,22 +23,15 @@ object MiningDataStreams {
 	    val conf = new SparkConf().setAppName("Lab 3").setMaster("local[*]")
 	    val ssc = new StreamingContext(conf, Seconds(1))
 
-		//adjacencyList
-		var adjacencyList = Map[Int, Set[Int]] = Map()
-		var edge2Triangles = Map[Int, Int] = Map()
-		var triangleCount: Int = 0;
-		var t: Int = 0;
-
 	    //read file from socket
 		//try {
-	    val lines = ssc.socketTextStream("localhost", 12345).cache()
+	    val lines = ssc.socketTextStream("localhost", 8888).cache()
 
 		lines.foreachRDD( rdd => {
 			rdd.collect().map( x => 
 				{
 					t = t + 1
-					println(x)
-					println("new line")
+					print(t)
 				 	val u: Int = x.split(" ")(0).toInt
 					val v: Int = x.split(" ")(1).toInt
 					sampleEdge(u, v, t) match{
@@ -65,13 +58,13 @@ object MiningDataStreams {
 	}
 
 	def sampleEdge(u: Int, v: Int, t: Int): Boolean = {
-		val m: Int = 1000
+		val m: Int = 60000
 
 		if (t <= m) {
 			//Inserted into the reservoir if t is less than M
 			return true
 		}
-		else if(Random.nextInt(t) >= m) {
+		else if(Random.nextInt(t) <= m) {
 			//"coin flip" with p(H) = m/t and H => sample/replace
 			//Delete an edge uniformly at random
 			val edgeIdx: Int = Random.nextInt(reservoir.length)
@@ -91,7 +84,7 @@ object MiningDataStreams {
 			}
 
 			updateCounters('-', u, v)
-			return true		
+			return true
 		}
 		return false
 	}
@@ -100,6 +93,7 @@ object MiningDataStreams {
 		val commonNeighbours: Set[Int] = adjacencyList.get(u).get.intersect(adjacencyList.get(v).get)
 		operator match {
 			case '+' => {
+				//print(" + " + " commonNeighbours: " + commonNeighbours)
 				triangleCount += commonNeighbours.size
 				vertex2Triangles +=  (u -> (commonNeighbours.size + vertex2Triangles.get(u).getOrElse(0)))
 				vertex2Triangles +=  (v -> (commonNeighbours.size + vertex2Triangles.get(v).getOrElse(0)))
@@ -108,14 +102,18 @@ object MiningDataStreams {
 				})
 			}
 			case _ => {
+				//print(" - " + " commonNeighbours: " + commonNeighbours)
 				triangleCount -= commonNeighbours.size
-				vertex2Triangles +=  (u -> (commonNeighbours.size - vertex2Triangles.get(u).getOrElse(0)))
-				vertex2Triangles +=  (v -> (commonNeighbours.size - vertex2Triangles.get(v).getOrElse(0)))
+				vertex2Triangles +=  (u -> (vertex2Triangles.get(u).getOrElse(0) - commonNeighbours.size))
+				vertex2Triangles +=  (v -> (vertex2Triangles.get(v).getOrElse(0) - commonNeighbours.size))
 				commonNeighbours.foreach( x =>  {
 					vertex2Triangles += (x -> (vertex2Triangles.get(x).getOrElse(0) - 1 ))
 				})
 			}
 		}
+		println(" c: " + triangleCount)
+		println(" adjList: " + adjacencyList.size)
+		println(" reservoir: " + reservoir.size)
 	}
 
 }
