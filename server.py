@@ -2,7 +2,7 @@ import socket
 from time import sleep
 
 host = 'localhost'
-port = 8888
+port = 9999
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((host, port))
@@ -13,7 +13,7 @@ while True:
     print('\nConnected by', addr)
     try:
         print('\nReading file...\n')
-        with open('dataset/test.txt') as f:
+        with open('dataset/out.com-amazon') as f:
             for line in f:
                 out = line.encode('utf-8')
                 print('Sending line',line)
