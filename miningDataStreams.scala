@@ -13,7 +13,7 @@ object MiningDataStreams {
 	// Reservoir
 	var reservoir: ListBuffer[(Int, Int)] = ListBuffer()
 	var adjacencyList: Map[Int, Set[Int]] = Map()
-	var edge2Triangles: Map[Int, Int] = Map()
+	var vertex2Triangles: Map[Int, Int] = Map()
 	var triangleCount: Int = 0;
 	var t: Int = 0;
 
@@ -83,17 +83,48 @@ object MiningDataStreams {
 			//"coin flip" with p(H) = m/t and H => sample/replace
 			//Delete an edge uniformly at random
 			val edgeIdx: Int = Random.nextInt(reservoir.length)
-			val edge: (Int, Int) = reservoir(edgeIdx)
-
-			reservoir.remove(edgeIdx)
+			val edge: (Int, Int) = reservoir.remove(edgeIdx)
 			val u: Int = edge._1
 			val v: Int = edge._2
+			val newUSet: Set[Int] = adjacencyList.get(u).get - u
+			newUSet match {
+				case Set() => adjacencyList -= u
+				case _ => adjacencyList += (u -> newUSet)
+			}
 
+			val newVSet: Set[Int] = adjacencyList.get(v).get - v
+			newVSet match {
+				case Set() => adjacencyList -= v
+				case _ => adjacencyList += (v -> newVSet)
+			}
+
+			updateCounters('-', u, v)
+			return true
+		
 		}
+		return false
 	}
 
 	def updateCounters(operator: Char, u: Int, v: Int) {
-
+		commonNeighbours = adjacencyList.get(u).get.intersection(adjacencyList.get(v).get)
+		operator match {
+			case '+' => {
+				triangleCount += commonNeighbours.size
+				vertex2Triangles +=  (u -> (commonNeighbours.size + vertex2Triangles.get(u).getOrElse(0)))
+				vertex2Triangles +=  (v -> (commonNeighbours.size + vertex2Triangles.get(v).getOrElse(0)))
+				commonNeighbours.foreach( x =>  {
+					vertex2Triangles += (x -> (vertex2Triangles.get(x).getOrElse(0) + 1 ))
+				})
+			}
+			case _ => {
+				triangleCount -= commonNeighbours.size
+				vertex2Triangles +=  (u -> (commonNeighbours.size - vertex2Triangles.get(u).getOrElse(0)))
+				vertex2Triangles +=  (v -> (commonNeighbours.size - vertex2Triangles.get(v).getOrElse(0)))
+				commonNeighbours.foreach( x =>  {
+					vertex2Triangles += (x -> (vertex2Triangles.get(x).getOrElse(0) - 1 ))
+				})
+			}
+		}
 	}
 
 }
