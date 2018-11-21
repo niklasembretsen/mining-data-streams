@@ -23,59 +23,45 @@ object MiningDataStreams {
 	    val conf = new SparkConf().setAppName("Lab 3").setMaster("local[*]")
 	    val ssc = new StreamingContext(conf, Seconds(1))
 
-		// adjacencyList
-		// var adjacencyList = Map[Int, Set[Int]] = Map()
-		// var edge2Triangles = Map[Int, Int] = Map()
-		// var triangleCount: Int = 0;
-		// var t: Int = 0;
+		//adjacencyList
+		var adjacencyList = Map[Int, Set[Int]] = Map()
+		var edge2Triangles = Map[Int, Int] = Map()
+		var triangleCount: Int = 0;
+		var t: Int = 0;
 
 	    //read file from socket
-	    try {
-	    	val lines = ssc.socketTextStream("localhost", 12345)
-		}
-		catch{
-			case e: Exception => e.printStackTrace
-		}
+		//try {
+	    val lines = ssc.socketTextStream("localhost", 12345).cache()
 
-		lines.map(x => {
-			t = t + 1
-			val u: Int = x.split(" ")(0).toInt
-			val v: Int = x.split(" ")(1).toInt
-			sampleEdge(u, v, t) match{
-				case true => {
-				// 	var currentUSet = adjacencyList.get(u).getOrElse(-1)
-				// 	currentUSet match {
-				// 		case -1 => {
-				// 			adjacencyList += + (u -> Set(v))
-				// 		}
-				// 		case _ => {
-				// 			adjacencyList += (u -> currentUSet + v)
-				// 			updateCounters('+', u , v)
-				// 		}
-				// 	} 
-				// 	var currentVSet = adjacencyList.get(v).getOrElse(-1)
-				// 	currentVSet match{
-				// 		case -1 => {
-				// 			adjacencyList += (v -> Set(u))
-				// 		}
-				// 		case _ => {
-				// 			adjacencyList += (v -> currentVSet + u)
-				// 			updateCounters ('+', v, u)
-				// 		}
-				// 	}
-					adjacencyList += (u -> (adjacencyList.get(u).getOrElse(Set.empty) + v))
-					adjacencyList += (v -> (adjacencyList.get(v).getOrElse(Set.empty) + u))
-					reservoir :+= (u, v)
-					updateCounters('+', u, v)
+		lines.foreachRDD( rdd => {
+			rdd.collect().map( x => 
+				{
+					t = t + 1
+					println(x)
+					println("new line")
+				 	val u: Int = x.split(" ")(0).toInt
+					val v: Int = x.split(" ")(1).toInt
+					sampleEdge(u, v, t) match{
+						case true => {
+							adjacencyList += (u -> (adjacencyList.get(u).getOrElse(Set.empty) + v))
+							adjacencyList += (v -> (adjacencyList.get(v).getOrElse(Set.empty) + u))
+							reservoir :+= (u, v)
+							updateCounters('+', u, v)
+						}
+						case _ =>
+					}
 				}
-				case _ =>
-			}
-		})
+			)}
+		)
+		
 
-
-		ssc.start()
-		ssc.awaitTermination()
-		println("triangleCount: " + triangleCount)
+			ssc.start()
+		//} catch {
+		//	case e: IllegalArgumentException => {
+			ssc.awaitTermination()
+		//	e.printStackTrace
+		//		}
+		//	}
 	}
 
 	def sampleEdge(u: Int, v: Int, t: Int): Boolean = {
