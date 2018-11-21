@@ -34,8 +34,8 @@ object MiningDataStreams {
 		
 		lines.map(x => {
 			t = t + 1
-			u = x.split(" ")(0)
-			v = x.split(" ")(1)
+			val u: Int = x.split(" ")(0).toInt
+			val v: Int = x.split(" ")(1).toInt
 			sampleEdge(u, v, t) match{
 				case true => {
 				// 	var currentUSet = adjacencyList.get(u).getOrElse(-1)
@@ -72,7 +72,7 @@ object MiningDataStreams {
 		ssc.awaitTermination()
 	}
 
-	def sampleEdge(u: Int, v: Int,): Boolean = {
+	def sampleEdge(u: Int, v: Int,t: Int): Boolean = {
 		val m: Int = 1000
 
 		if (t <= m) {
@@ -99,14 +99,13 @@ object MiningDataStreams {
 			}
 
 			updateCounters('-', u, v)
-			return true
-		
+			return true		
 		}
 		return false
 	}
 
 	def updateCounters(operator: Char, u: Int, v: Int) {
-		commonNeighbours = adjacencyList.get(u).get.intersection(adjacencyList.get(v).get)
+		val commonNeighbours: Set[Int] = adjacencyList.get(u).get.intersection(adjacencyList.get(v).get)
 		operator match {
 			case '+' => {
 				triangleCount += commonNeighbours.size
