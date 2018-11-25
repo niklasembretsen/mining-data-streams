@@ -20,35 +20,49 @@ object MiningDataStreams {
 		var vertex2Triangles: Map[Int, Int] = Map()
 		var triangleCount: Int = 0
 		var t: Int = 0
-		val m: Int = 1000
-		println("test.scala")
-		for(edge <- f) {
-			if(t % 10000 == 0){
-				println("t: " + t + " triCnt: " + triangleCount)
-			}
-			t = t + 1
-			val u: Int = edge.split(" ")(0).toInt
-			val v: Int = edge.split(" ")(1).toInt
-			val sampleResults = sampleEdge(t, m, reservoir, adjacencyList, triangleCount, isImproved)
-			val sample: Boolean = sampleResults._1
-			reservoir = sampleResults._2
-			adjacencyList = sampleResults._3
-			triangleCount = sampleResults._4
+		//214, 2140, 21400, 
+		val mVal: Seq[Int] = Seq(214000)
+		for (m <- mVal) {
+			//val m: Int = 10000
+			var mean: Int = 0
+			for (i <- 1 to 10) {
+				for(edge <- f) {
+					// if(t % 10000 == 0){
+					// 	println("t: " + t + " triCnt: " + triangleCount)
+					// }
+					t = t + 1
+					val u: Int = edge.split(" ")(0).toInt
+					val v: Int = edge.split(" ")(1).toInt
+					val sampleResults = sampleEdge(t, m, reservoir, adjacencyList, triangleCount, isImproved)
+					val sample: Boolean = sampleResults._1
+					reservoir = sampleResults._2
+					adjacencyList = sampleResults._3
+					triangleCount = sampleResults._4
 
-			if (isImproved) {
-				triangleCount = updateCounters('+', u, v, adjacencyList, triangleCount, t, m, isImproved)
-			}
+					if (isImproved) {
+						triangleCount = updateCounters('+', u, v, adjacencyList, triangleCount, t, m, isImproved)
+					}
 
-			if(sample) {
-				//Add edge (u, v) to reservoir
-				reservoir :+= (u, v)
-				//Add u/v as neighbour to v/u
-				adjacencyList = adjacencyList + (u -> (adjacencyList.get(u).getOrElse(Set.empty) + v))
-				adjacencyList = adjacencyList + (v -> (adjacencyList.get(v).getOrElse(Set.empty) + u))
-				if(!isImproved) {
-					triangleCount = updateCounters('+', u, v, adjacencyList, triangleCount, t, m, isImproved)
+					if(sample) {
+						//Add edge (u, v) to reservoir
+						reservoir :+= (u, v)
+						//Add u/v as neighbour to v/u
+						adjacencyList = adjacencyList + (u -> (adjacencyList.get(u).getOrElse(Set.empty) + v))
+						adjacencyList = adjacencyList + (v -> (adjacencyList.get(v).getOrElse(Set.empty) + u))
+						if(!isImproved) {
+							triangleCount = updateCounters('+', u, v, adjacencyList, triangleCount, t, m, isImproved)
+						}
+					}
 				}
+				println("iter: " + i + " final count: " + triangleCount)
+				mean = mean + triangleCount
+				triangleCount = 0
+				t = 0
+				reservoir = ListBuffer()
+				adjacencyList = Map()
+				vertex2Triangles = Map()
 			}
+			println("M: " + m + "Average count: " + (mean/100))
 		}
 	}
 
