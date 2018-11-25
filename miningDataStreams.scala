@@ -15,9 +15,9 @@ object MiningDataStreams {
 	var reservoir: ListBuffer[(Int, Int)] = ListBuffer()
 	var adjacencyList: Map[Int, Set[Int]] = Map()
 	var vertex2Triangles: Map[Int, Int] = Map()
-	var triangleCount: Int = 0
+	var triangleCount: Double = 0
 	var t: Int = 0
-	val m: Int = 171000
+	val m: Int = 5000
 	val doImpr: Boolean = true
 
 	def main(args: Array[String]) {
@@ -63,9 +63,20 @@ object MiningDataStreams {
 		    data.foreach(println)
 		}
 		else {
-			val seeds: List[Int] = List(9, 17, 97, 931, 1011, 7313)
-			val f = scala.io.Source.fromFile("dataset/randomData.txt").getLines.toSeq
+			var mean: Double = 0
+			val seeds: List[Int] = List(9, 17, 97, 931, 1011,
+										7313, 1000, 1001, 901023, 10203,
+										101003, 303022, 101002, 30300, 11,
+										71, 833, 9111, 87641, 101011,
+										189203, 404901, 188203, 991, 717,
+										791, 891, 191, 237, 761,
+										104549, 104551, 104561, 104579, 104593,
+										104597, 104623, 104639, 104651, 104659,
+										104677, 104681, 104683, 104693, 104701,
+										104707, 104711, 104717, 104723, 104729)
+			val f = scala.io.Source.fromFile("dataset/out.loc").getLines.toSeq
 			for(seed <- seeds) {
+			//for (i <- 1 to 100) {
 				for(edge <- f) {
 					t = t + 1
 					val u: Int = edge.split(" ")(0).toInt
@@ -85,14 +96,18 @@ object MiningDataStreams {
 						case _ =>
 					}
 				}
+				//println("iter: " + i)
 				println("seed: " + seed)
 				println("total triangles: " + triangleCount)
+				mean += triangleCount
 				reservoir = ListBuffer()
 				adjacencyList = Map()
 				vertex2Triangles = Map()
 				triangleCount = 0;
 				t = 0;
 			}
+			println("Avg num triangles:")
+			println(mean/seeds.length)
 		}
 	}
 
@@ -149,13 +164,17 @@ object MiningDataStreams {
 		//added or removed
 
 		if (doImpr) {
-			val tempUpdate: Int = ((t - 1)*(t - 2))/(m*(m - 1))
+			val tempUpdate: Int = ((t - 1)/(m))*((t - 2)/((m - 1)))
+			//println(" tempVal " + tempUpdate)
 			val updateVal: Int = Math.max(1, tempUpdate)
+			//println(" updVal " + updateVal)
 			for (c <- commonNeighbours) {
+				// println("in loop: " + updateVal + " tempUpdate: " + tempUpdate)
+				// println("t: " + t + " m: " + m)
 				triangleCount += updateVal
-				vertex2Triangles +=  (u -> (updateVal + vertex2Triangles.get(u).getOrElse(0)))
-				vertex2Triangles +=  (v -> (updateVal + vertex2Triangles.get(v).getOrElse(0)))
-				vertex2Triangles += (c -> (vertex2Triangles.get(c).getOrElse(0) + updateVal))
+				// vertex2Triangles +=  (u -> (updateVal + vertex2Triangles.get(u).getOrElse(0)))
+				// vertex2Triangles +=  (v -> (updateVal + vertex2Triangles.get(v).getOrElse(0)))
+				// vertex2Triangles += (c -> (vertex2Triangles.get(c).getOrElse(0) + updateVal))
 			}
 		}
 		else {
