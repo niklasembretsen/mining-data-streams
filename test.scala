@@ -13,15 +13,15 @@ object MiningDataStreams {
 
 	def main(args: Array[String]) {
 		val isImproved: Boolean = true
-		val f = scala.io.Source.fromFile("dataset/out.loc").getLines.toSeq
+		val f = scala.io.Source.fromFile("dataset/randomData.txt").getLines.toSeq
 
 		var reservoir: ListBuffer[(Int, Int)] = ListBuffer()
 		var adjacencyList: Map[Int, Set[Int]] = Map()
 		var vertex2Triangles: Map[Int, Int] = Map()
 		var triangleCount: Int = 0
 		var t: Int = 0
-		//214, 2140, 21400, 
-		val mVal: Seq[Int] = Seq(214000)
+		//
+		val mVal: Seq[Int] = Seq(214, 2140, 214000)
 		for (m <- mVal) {
 			//val m: Int = 10000
 			var mean: Int = 0
@@ -54,7 +54,7 @@ object MiningDataStreams {
 						}
 					}
 				}
-				println("iter: " + i + " final count: " + triangleCount)
+				//println("iter: " + i + " final count: " + triangleCount)
 				mean = mean + triangleCount
 				triangleCount = 0
 				t = 0
@@ -62,7 +62,7 @@ object MiningDataStreams {
 				adjacencyList = Map()
 				vertex2Triangles = Map()
 			}
-			println("M: " + m + "Average count: " + (mean/100))
+			println("M: " + m + " Average count: " + (mean/10))
 		}
 	}
 
